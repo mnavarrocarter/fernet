@@ -1,0 +1,42 @@
+{
+    "name": "mnavarrocarter/fernet",
+    "description": "An object oriented Fernet implementation for PHP",
+    "minimum-stability": "stable",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Matías Navarro-Carter",
+            "email": "mnavarrocarter@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "ext-openssl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "MNC\\Fernet\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MNC\\Fernet\\Tests\\": "tests"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.0",
+        "vimeo/psalm": "^3.11",
+        "friendsofphp/php-cs-fixer": "^2.16"
+    },
+    "scripts": {
+        "lint": "php-cs-fixer fix --ansi",
+        "ci:types": "psalm",
+        "ci:unit": "phpunit --coverage-clover build/coverage.xml --coverage-html build/coverage",
+        "ci:style": "php-cs-fixer fix --dry-run -vvv --ansi",
+        "ci": [
+            "@ci:types",
+            "@ci:unit",
+            "@ci:style"
+        ]
+    }
+}

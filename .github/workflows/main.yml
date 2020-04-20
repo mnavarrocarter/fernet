@@ -1,0 +1,44 @@
+name: CI
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci-skip')"
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v1
+      with:
+        php-version: '7.2'
+        extensions: dom, soap, openssl #optional, setup extensions
+        coverage: xdebug #optional, setup coverage driver
+        tools: composer # setup tools globally
+
+    - name: Get Composer Cache Directory
+      id: composer-cache
+      run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+    - name: Load Composer Cache
+      uses: actions/cache@v1
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer
+        restore-keys: |
+          ${{ runner.os }}-composer
+
+    - name: Install Dependencies
+      run: composer install --prefer-dist
+
+    - name: Test Code Style
+      run: composer ci:style
+
+    - name: Test Units
+      run: composer ci:unit
+
+    - name: Test Types
+      run: composer ci:types
