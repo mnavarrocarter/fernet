@@ -6,7 +6,7 @@ Exchange strong encrypted messages effectively and privately between two parties
 ## Install
 
 ```bash
-composer require mnavarro/fernet
+composer require mnavarrocarter/fernet
 ```
 
 ## Usage
