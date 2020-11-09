@@ -120,7 +120,7 @@ final class Vx80Marshaller implements Marshaller
         // We recompute the HMAC and ensure matched the token one
         $hmac = substr($decoded, -32);
         $recomputedHmac = $this->key->sign($base);
-        if ($hmac !== $recomputedHmac) {
+        if (!hash_equals($hmac, $recomputedHmac)) {
             throw FernetException::incorrectMac();
         }
 
