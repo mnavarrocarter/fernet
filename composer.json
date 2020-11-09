@@ -11,12 +11,14 @@
     ],
     "require": {
         "php": ">=7.2",
-        "ext-openssl": "*"
+        "ext-openssl": "*",
+        "lcobucci/clock": "^1.2"
     },
     "autoload": {
         "psr-4": {
             "MNC\\Fernet\\": "src"
-        }
+        },
+        "files": ["functions.php"]
     },
     "autoload-dev": {
         "psr-4": {

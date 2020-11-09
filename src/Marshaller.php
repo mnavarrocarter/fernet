@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /*
  * This file is part of the MNC\Fernet project.
  * (c) Matías Navarro-Carter <mnavarrocarter@gmail.com>
@@ -12,17 +10,27 @@ declare(strict_types=1);
 namespace MNC\Fernet;
 
 /**
- * Interface TokenVerifier.
+ * A Marshaller is responsible fot managing encoding/decoding of
+ * tokens according to the Fernet Spec.
  */
-interface DecoderInterface
+interface Marshaller
 {
     /**
+     * Encodes a message into a fernet token.
+     *
+     * @param string $message
+     *
+     * @return string
+     */
+    public function encode(string $message): string;
+
+    /**
+     * Decodes a fernet token into the original message.
+     *
      * @param string   $token
      * @param int|null $ttl
      *
      * @return string
-     *
-     * @throws FernetException on token validation error
      */
     public function decode(string $token, int $ttl = null): string;
 }
