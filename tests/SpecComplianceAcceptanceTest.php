@@ -3,8 +3,12 @@ declare(strict_types=1);
 
 namespace MNC\Fernet\Tests;
 
+use DateTimeImmutable;
+use Lcobucci\Clock\FrozenClock;
 use MNC\Fernet\FernetException;
-use MNC\Fernet\Version\Vx80Key;
+use MNC\Fernet\Random\FixedRandomSource;
+use MNC\Fernet\Vx80Key;
+use MNC\Fernet\Vx80Marshaller;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -24,11 +28,12 @@ class SpecComplianceAcceptanceTest extends TestCase
         $tests = $this->readJson(__DIR__ . '/generate.json');
         foreach ($tests as $test) {
             $key = Vx80Key::fromString($test['secret']);
-            $time = \DateTimeImmutable::createFromFormat(DATE_ATOM, $test['now']);
-            $fernet = new FernetDeterministic($key, $time, $test['iv'] ?? []);
+            $clock = new FrozenClock(DateTimeImmutable::createFromFormat(DATE_ATOM, $test['now']));
+            $random = FixedRandomSource::fromUint8Array($test['iv']);
+            $marshaller = new Vx80Marshaller($key, $clock, $random);
 
-            $token = $fernet->encode($test['src']);
-            $this->assertSame($test['token'], $token);
+            $token = $marshaller->encode($test['src']);
+            self::assertSame($test['token'], $token);
         }
     }
 
@@ -37,13 +42,14 @@ class SpecComplianceAcceptanceTest extends TestCase
         $tests = $this->readJson(__DIR__ . '/invalid.json');
         foreach ($tests as $test) {
             $key = Vx80Key::fromString($test['secret']);
-            $time = \DateTimeImmutable::createFromFormat(DATE_ATOM, $test['now']);
-            $fernet = new FernetDeterministic($key, $time, $test['iv'] ?? []);
+            $clock = new FrozenClock(DateTimeImmutable::createFromFormat(DATE_ATOM, $test['now']));
+            $random = FixedRandomSource::fromUint8Array($test['iv'] ?? []);
+            $marshaller = new Vx80Marshaller($key, $clock, $random);
 
             try {
-                $fernet->decode($test['token'], $test['ttl_sec']);
+                $marshaller->decode($test['token'], $test['ttl_sec']);
             } catch (FernetException $e) {
-                $this->assertInstanceOf(FernetException::class, $e);
+                self::assertInstanceOf(FernetException::class, $e);
             }
         }
     }
@@ -53,11 +59,12 @@ class SpecComplianceAcceptanceTest extends TestCase
         $tests = $this->readJson(__DIR__ . '/verify.json');
         foreach ($tests as $test) {
             $key = Vx80Key::fromString($test['secret']);
-            $time = \DateTimeImmutable::createFromFormat(DATE_ATOM, $test['now']);
-            $fernet = new FernetDeterministic($key, $time, $test['iv'] ?? []);
+            $clock = new FrozenClock(DateTimeImmutable::createFromFormat(DATE_ATOM, $test['now']));
+            $random = FixedRandomSource::fromUint8Array($test['iv'] ?? []);
+            $marshaller = new Vx80Marshaller($key, $clock, $random);
 
-            $message = $fernet->decode($test['token'], $test['ttl_sec']);
-            $this->assertSame($test['src'], $message);
+            $message = $marshaller->decode($test['token'], $test['ttl_sec']);
+            self::assertSame($test['src'], $message);
         }
     }
 

@@ -14,18 +14,21 @@ composer require mnavarrocarter/fernet
 At the moment, there is only one version of Fernet:
 
 ```php
-use MNC\Fernet\Fernet;
+use MNC\Fernet\Vx80Marshaller;
+use MNC\Fernet\Vx80Key;
 
 require_once __DIR__. '/vendor/autoload.php';
 
-// Instantiate the version x80 passing the key
-$fernet = Fernet::vx80('eLh6lGOYbbHvTHhI-nd_s76mZ7NZi9L5AA_bQNI_KoE');
+// Instantiate a key for version x80
+$key = Vx80Key::fromString('eLh6lGOYbbHvTHhI-nd_s76mZ7NZi9L5AA_bQNI_KoE');
+// Then, create the marshaller
+$marshaller = new Vx80Marshaller($key);
 
 // Encode a message and get a token
-$token = $fernet->encode('hello');
+$token = $marshaller->encode('hello');
 
 // You can then decrypt that token back to the message
-$message = $fernet->decode($token);
+$message = $marshaller->decode($token);
 ```
 
 ## What is Fernet?

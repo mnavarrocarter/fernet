@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /*
  * This file is part of the MNC\Fernet project.
  * (c) Matías Navarro-Carter <mnavarrocarter@gmail.com>
@@ -9,19 +7,18 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace MNC\Fernet\Version;
+namespace MNC\Fernet;
 
-use Exception;
 use InvalidArgumentException;
-use MNC\Fernet\FernetException;
-use MNC\Fernet\KeyInterface;
-use MNC\Fernet\UrlSafeBase64;
-use RuntimeException;
+use MNC\Fernet\Random\PhpRandomSource;
+use MNC\Fernet\Random\RandomSource;
+use function MNC\Fernet\UrlBase64\decode;
+use function MNC\Fernet\UrlBase64\encode;
 
 /**
  * Class Vx80Key.
  */
-final class Vx80Key implements KeyInterface
+class Vx80Key
 {
     private const FLAGS = OPENSSL_ZERO_PADDING + OPENSSL_RAW_DATA;
 
@@ -35,15 +32,17 @@ final class Vx80Key implements KeyInterface
     private $encryptionKey;
 
     /**
+     * @param RandomSource|null $randomSource
+     *
      * @return Vx80Key
+     *
+     * @throws Random\EntropyError
      */
-    public static function random(): Vx80Key
+    public static function random(RandomSource $randomSource = null): Vx80Key
     {
-        try {
-            return new self(random_bytes(16), random_bytes(16));
-        } catch (Exception $e) {
-            throw new RuntimeException('Not enough entropy for the token');
-        }
+        $randomSource = $randomSource ?? new PhpRandomSource();
+
+        return new self($randomSource->read(16), $randomSource->read(16));
     }
 
     /**
@@ -51,11 +50,11 @@ final class Vx80Key implements KeyInterface
      *
      * @return Vx80Key
      *
-     * @throws FernetException
+     * @throws InvalidArgumentException invalid key provided
      */
     public static function fromString(string $key): Vx80Key
     {
-        $bytes = UrlSafeBase64::decode($key);
+        $bytes = decode($key);
         if (strlen($bytes) !== 32) {
             throw new InvalidArgumentException('Invalid key provided. Key must be 32 bytes encoded in base64 (url-safe)');
         }
@@ -131,6 +130,6 @@ final class Vx80Key implements KeyInterface
 
     public function toString(): string
     {
-        return UrlSafeBase64::encode($this->signingKey.$this->encryptionKey);
+        return encode($this->signingKey.$this->encryptionKey);
     }
 }

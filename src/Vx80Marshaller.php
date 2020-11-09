@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /*
  * This file is part of the MNC\Fernet project.
  * (c) Matías Navarro-Carter <mnavarrocarter@gmail.com>
@@ -9,35 +7,70 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace MNC\Fernet\Version;
+namespace MNC\Fernet;
 
-use InvalidArgumentException;
-use MNC\Fernet\FernetException;
-use MNC\Fernet\UrlSafeBase64;
+use Lcobucci\Clock\Clock;
+use Lcobucci\Clock\SystemClock;
+use MNC\Fernet\Random\PhpRandomSource;
+use MNC\Fernet\Random\RandomSource;
+use function MNC\Fernet\Str\pad;
+use function MNC\Fernet\Str\unpad;
+use function MNC\Fernet\UrlBase64\decode;
+use function MNC\Fernet\UrlBase64\encode;
 
 /**
- * Class Vx80Fernet.
+ * Class Vx80Marshaller.
  */
-class Vx80Version extends AbstractVersion
+final class Vx80Marshaller implements Marshaller
 {
     private const VERSION = "\x80";
     private const MIN_LENGTH = 73;
     private const MAX_CLOCK_SKEW = 60;
+    private const IV_SIZE = 16;
+
+    /**
+     * @var Vx80Key
+     */
+    private $key;
+    /**
+     * @var Clock
+     */
+    private $clock;
+    /**
+     * @var RandomSource
+     */
+    private $randomSource;
+
+    /**
+     * Vx80Marshaller constructor.
+     *
+     * @param Vx80Key           $key
+     * @param Clock|null        $clock
+     * @param RandomSource|null $randomSource
+     */
+    public function __construct(Vx80Key $key, Clock $clock = null, RandomSource $randomSource = null)
+    {
+        $this->key = $key;
+        $this->clock = $clock ?? SystemClock::fromUTC();
+        $this->randomSource = $randomSource ?? new PhpRandomSource();
+    }
 
     /**
      * @param string $message
      *
      * @return string
+     *
+     * @throws Random\EntropyError
      */
     public function encode(string $message): string
     {
-        $time = $this->getBinaryTime();
-        $iv = $this->iv();
-        $cipher = $this->key->encrypt($this->pad($message), $iv);
+        $time = pack('J', $this->clock->now()->getTimestamp());
+        $iv = $this->randomSource->read(self::IV_SIZE);
+        $cipher = $this->key->encrypt(pad($message), $iv);
         $base = self::VERSION.$time.$iv.$cipher;
         $hmac = $this->key->sign($base);
 
-        return UrlSafeBase64::encode($base.$hmac);
+        return encode($base.$hmac);
     }
 
     /**
@@ -51,7 +84,11 @@ class Vx80Version extends AbstractVersion
     public function decode(string $token, int $ttl = null): string
     {
         // We base64 decode the token
-        $decoded = UrlSafeBase64::decode($token);
+        try {
+            $decoded = decode($token);
+        } catch (\InvalidArgumentException $exception) {
+            throw FernetException::invalidBase64();
+        }
 
         $length = strlen($decoded);
 
@@ -61,7 +98,7 @@ class Vx80Version extends AbstractVersion
 
         $base = substr($decoded, 0, -32);
         $version = $base[0];
-        $tokenTime = unpack('N/N', substr($base, 1, 8))[1];
+        $tokenTime = unpack('J', substr($base, 1, 8))[1];
 
         // We ensure the first byte is 0x80
         if ($version !== self::VERSION) {
@@ -69,7 +106,7 @@ class Vx80Version extends AbstractVersion
         }
 
         // We extract the time and do future and expiration checks
-        $currentTime = unpack('N/N', $this->getBinaryTime())[1];
+        $currentTime = $this->clock->now()->getTimestamp();
         $timeDiff = $currentTime - $tokenTime;
 
         if ($ttl > 0 && $timeDiff > $ttl) {
@@ -93,13 +130,10 @@ class Vx80Version extends AbstractVersion
         $message = $this->key->decrypt($cipher, $iv);
 
         // Unpad decrypted, returning original message
-        return $this->unpad($message);
-    }
-
-    final protected function guard(): void
-    {
-        if (!$this->key instanceof Vx80Key) {
-            throw new InvalidArgumentException('Invalid key for Fernet 0x80 version');
+        try {
+            return unpad($message);
+        } catch (\InvalidArgumentException $exception) {
+            throw FernetException::payloadPaddingError();
         }
     }
 }
