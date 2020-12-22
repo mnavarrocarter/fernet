@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.2"
+          - "7.4"
         operating-system:
           - "ubuntu-latest"
     steps:
@@ -43,7 +43,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.2"
+          - "7.4"
         operating-system:
           - "ubuntu-latest"
     steps:
@@ -77,9 +77,8 @@ jobs:
           - "locked"
           - "highest"
         php-version:
-          - "7.2"
-          - "7.3"
           - "7.4"
+          - "8.0"
         operating-system:
           - "ubuntu-latest"
     steps:
