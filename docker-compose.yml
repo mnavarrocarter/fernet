@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+
+  lib:
+    image: mnavarro/fernet:dev
+    build:
+      context: .mnavarro/docker
+      dockerfile: ./lib/Dockerfile
+      target: dev
+    container_name: fernet.lib
+    working_dir: /mnavarro/lib
+    volumes:
+      - .:/mnavarro/lib
+    user: mnavarro

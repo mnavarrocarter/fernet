@@ -1,0 +1,17 @@
+PROJECT SETUP COMPLETE!
+
+We recommend adding this alias to your shell:
+
+    alias dc="docker-compose"
+
+After you have done it, you can quickly use "dc" to exec into a container:
+
+    dc exec app php -v
+
+To open an alpine shell into the app service, run:
+
+    dc exec app ash
+
+Don't forget to run "make pr" before pushing code for a Pull Request.
+
+Happy coding!

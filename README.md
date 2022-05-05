@@ -11,7 +11,7 @@ composer require mnavarrocarter/fernet
 
 ## Usage
 
-At the moment, there is only one version of Fernet:
+It's really easy to get started:
 
 ```php
 use MNC\Fernet\Vx80Marshaller;
@@ -19,22 +19,21 @@ use MNC\Fernet\Vx80Key;
 
 require_once __DIR__. '/vendor/autoload.php';
 
-// Instantiate a key for version x80
-$key = Vx80Key::fromString('eLh6lGOYbbHvTHhI-nd_s76mZ7NZi9L5AA_bQNI_KoE');
-// Then, create the marshaller
-$marshaller = new Vx80Marshaller($key);
+// Instantiate the Fernet class using the static factory and passing the base64url encoded key.
+$fernet = MNC\Fernet::create('cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=');
 
-// Encode a message and get a token
-$token = $marshaller->encode('hello');
+// Then, you can encode messages with it
+$token = $fernet->encode('hello');
 
-// You can then decrypt that token back to the message
+// You can then decrypt that token back to the original message
 $message = $marshaller->decode($token);
 ```
 
 ## What is Fernet?
 
-Fernet is a recent specification for encrypting a message and encode it into a secure
-token with established security practices like block sizing, padding and signature hashing.
+Fernet is a ~~recent~~ not so recent specification for encrypting a message and encode
+it into a secure token with established security practices like block sizing, padding and
+signature hashing.
 
 Encryption is symmetric using a secret of 32 bytes.
 

@@ -1,0 +1,11 @@
+READY FOR PR!
+
+Don't forget to add only relevant files to the staging tree.
+
+Please follow conventional commits guidelines for your commit message. See: https://www.conventionalcommits.org/en/v1.0.0/
+
+Describe your changes in the commit description accurately.
+
+Remember to rebase locally if main has had new commits since you created your branch.
+
+If possible, squash your changes into a single commit.
