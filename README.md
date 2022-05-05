@@ -14,19 +14,15 @@ composer require mnavarrocarter/fernet
 It's really easy to get started:
 
 ```php
-use MNC\Fernet\Vx80Marshaller;
-use MNC\Fernet\Vx80Key;
-
-require_once __DIR__. '/vendor/autoload.php';
 
 // Instantiate the Fernet class using the static factory and passing the base64url encoded key.
 $fernet = MNC\Fernet::create('cw_0x689RpI-jtRR7oE8h_eQsKImvJapLeSbXpwF4e4=');
 
-// Then, you can encode messages with it
+// Then, you can encode messages with your fernet instance
 $token = $fernet->encode('hello');
 
 // You can then decrypt that token back to the original message
-$message = $marshaller->decode($token);
+$message = $fernet->decode($token);
 ```
 
 ## What is Fernet?
