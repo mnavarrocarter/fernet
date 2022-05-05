@@ -1,6 +1,6 @@
 {
     "name": "mnavarrocarter/fernet",
-    "description": "An object oriented Fernet implementation for PHP",
+    "description": "A modern implementation of Fernet crypto for PHP",
     "minimum-stability": "stable",
     "license": "MIT",
     "authors": [
@@ -9,36 +9,25 @@
             "email": "mnavarrocarter@gmail.com"
         }
     ],
-    "require": {
-        "php": ">=7.4",
-        "ext-openssl": "*",
-        "lcobucci/clock": "^1.4"
-    },
     "autoload": {
         "psr-4": {
-            "MNC\\Fernet\\": "src"
+            "MNC\\": "src"
         },
         "files": ["functions.php"]
     },
     "autoload-dev": {
         "psr-4": {
-            "MNC\\Fernet\\Tests\\": "tests"
+            "MNC\\": "tests"
         }
     },
-    "require-dev": {
-        "phpunit/phpunit": "^8.0",
-        "vimeo/psalm": "^4.1",
-        "friendsofphp/php-cs-fixer": "^2.16"
+    "require": {
+        "php": ">=8.0",
+        "ext-openssl": "*",
+        "chrisharrison/clock": "^1.0"
     },
-    "scripts": {
-        "lint": "php-cs-fixer fix --ansi",
-        "ci:types": "psalm",
-        "ci:unit": "phpunit --coverage-clover build/coverage.xml --coverage-html build/coverage",
-        "ci:style": "php-cs-fixer fix --dry-run -vvv --ansi",
-        "ci": [
-            "@ci:types",
-            "@ci:unit",
-            "@ci:style"
-        ]
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^4.22",
+        "friendsofphp/php-cs-fixer": "^3.8"
     }
 }

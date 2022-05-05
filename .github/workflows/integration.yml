@@ -1,0 +1,82 @@
+name: "Code Integration Checks"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "master"
+      - "2.x"
+
+env:
+  COMPOSER_FLAGS: "--ansi --no-interaction --no-progress --no-suggest --ignore-platform-req=php"
+
+jobs:
+
+  # PHP Checks (PHP CS Fixer, Psalm, PHPUnit)
+  quality-checks:
+    name: "Quality Checks"
+    runs-on: ${{ matrix.operating-system }}
+    timeout-minutes: 10
+    env:
+      COMPOSER_FLAGS: "--ansi --no-interaction --no-progress --ignore-platform-req=php"
+    strategy:
+      matrix:
+        dependencies:
+          - "locked"
+          - "highest"
+        php-version:
+          - "8.0"
+          - "8.1"
+        operating-system:
+          - "ubuntu-latest"
+    steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v2"
+      - name: "Setup PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "xdebug"
+          php-version: "${{ matrix.php-version }}"
+          ini-values: memory_limit=-1
+          tools: composer:v2
+      - name: "Cache dependencies"
+        uses: "actions/cache@v2"
+        with:
+          path: |
+            ~/.composer/cache
+            vendor
+          key: "${{ runner.os}}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}"
+          restore-keys: "${{ runner.os}}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}"
+      - name: "Install highest dependencies"
+        if: ${{ matrix.dependencies == 'highest' }}
+        run: "composer update ${{ env.COMPOSER_FLAGS }}"
+        continue-on-error: true
+      - name: "Install locked dependencies"
+        if: ${{ matrix.dependencies == 'locked' }}
+        run: "composer install ${{ env.COMPOSER_FLAGS }}"
+      - name: "Run PHP CS Fixer"
+        run: "php vendor/bin/php-cs-fixer fix --dry-run -vvv"
+      - name: "Run Psalm"
+        run: "php vendor/bin/psalm --stats --no-cache --show-info=true"
+      - name: "Run PHPUnit"
+        run: "php vendor/bin/phpunit --coverage-text --testsuite=unit"
+
+  release:
+    name: "Release"
+    needs:
+      - quality-checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Semantic Release
+        uses: codfish/semantic-release-action@v1
+        with:
+          branches: |
+            [
+              '+([0-9])?(.{+([0-9]),x}).x',
+              'master'
+            ]
+          tag_format: '${version}'
+          plugins: |
+            ['@semantic-release/commit-analyzer', '@semantic-release/release-notes-generator', '@semantic-release/github']
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
