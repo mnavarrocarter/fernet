@@ -29,5 +29,15 @@
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^4.22",
         "friendsofphp/php-cs-fixer": "^3.8"
+    },
+    "scripts": {
+        "phpcs": "vendor/bin/php-cs-fixer fix --dry-run -vvv",
+        "psalm": "vendor/bin/psalm --stats --no-cache --show-info=true",
+        "phpunit": "vendor/bin/phpunit --coverage-text --testsuite=unit",
+        "check-all": [
+            "@phpcs",
+            "@psalm",
+            "@phpunit"
+        ]
     }
 }
